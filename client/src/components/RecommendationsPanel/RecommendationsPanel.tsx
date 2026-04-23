@@ -19,12 +19,13 @@ export default function RecommendationsPanel() {
       setIsSpeaking(false);
       return;
     }
-    setIsSpeaking(true);
-    speakRecommendations(recommendations, language);
-    // Stop state after rough duration
-    const totalChars = recommendations.reduce((sum, r) => sum + (r.voiceText ?? r.description[language]).length, 0);
-    const approxMs = (totalChars / 8) * 1000; // ~8 chars/sec
-    setTimeout(() => setIsSpeaking(false), approxMs);
+    
+    speakRecommendations(
+      recommendations, 
+      language,
+      () => setIsSpeaking(true),
+      () => setIsSpeaking(false)
+    );
   };
 
   const riskColor = recommendationSummary?.overallRisk === 'critical' ? '#ef4444'

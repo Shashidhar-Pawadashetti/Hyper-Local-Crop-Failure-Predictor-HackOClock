@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
+import html2canvas from 'html2canvas';
 import { useApp } from '../../context/AppContext';
 import ScoreGauge from './ScoreGauge';
 import ChannelBar from './ChannelBar';
@@ -30,6 +32,22 @@ export default function RiskDashboard() {
   const isDataFresh = weather.isFresh !== false && ndvi.isFresh !== false;
   const freshnessLabel = isDataFresh ? 'LIVE' : 'CACHED';
   const freshnessColor = isDataFresh ? '#22c55e' : '#facc15';
+
+  // Hackathon workaround: capture the map image while it's in the DOM
+  // so PDFExport can use it even when this component is unmounted.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const mapContainer = document.querySelector('#report-map-container');
+      if (mapContainer) {
+        html2canvas(mapContainer as HTMLElement, { useCORS: true, logging: false })
+          .then(canvas => {
+            (window as any).__cachedMapImage = canvas.toDataURL('image/png');
+          })
+          .catch(() => { /* silent fail */ });
+      }
+    }, 2500); // Wait for Leaflet tiles to load
+    return () => clearTimeout(timer);
+  }, [mapCenter]);
 
   return (
     <div style={{

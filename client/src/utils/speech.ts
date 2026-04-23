@@ -37,7 +37,49 @@ export function isSpeaking(): boolean {
 export function speakRecommendations(
   recommendations: { voiceText?: string; description: { en: string; hi: string; kn: string } }[],
   language: Language,
+  onStart?: () => void,
+  onEnd?: () => void
 ): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    onEnd?.();
+    return;
+  }
+
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel();
+  
   const texts = recommendations.map(r => r.voiceText ?? r.description[language]);
-  speakText(texts.join('. '), language);
+  let currentIndex = 0;
+
+  const speakNext = () => {
+    if (currentIndex >= texts.length) {
+      onEnd?.();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(texts[currentIndex]);
+    utterance.lang = LANG_MAP[language];
+    utterance.rate = 0.85; // slightly slower for clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    utterance.onend = () => {
+      currentIndex++;
+      speakNext();
+    };
+
+    utterance.onerror = (e) => {
+      console.error('SpeechSynthesis error:', e);
+      // Even on error, ensure we reset state
+      onEnd?.();
+    };
+
+    // Android Chrome Workaround: Delay speak slightly after cancel or previous utterance
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 50);
+  };
+
+  onStart?.();
+  speakNext();
 }

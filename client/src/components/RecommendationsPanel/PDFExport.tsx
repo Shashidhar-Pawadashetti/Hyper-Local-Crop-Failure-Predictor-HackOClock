@@ -56,14 +56,13 @@ export default function PDFExport() {
       const { district, crop, stage, analysisResult, recommendations, language, mapTheme } = state;
       const rs = analysisResult?.riskScores;
 
-      // 1. Capture the existing map from the DOM if it exists (it's in the Dashboard)
-      // Since currentView might be 'recommendations', the map might be unmounted.
-      // But for this hackathon, we'll assume the Dashboard was rendered and we try to find the map container.
-      // If it's not found, we'll use a placeholder.
+      // 1. Capture the existing map image. 
+      // Since currentView is 'recommendations', the map in RiskDashboard is unmounted.
+      // We use the cached image captured by RiskDashboard before it unmounted.
       const mapContainer = document.querySelector('#report-map-container');
-      let mapImgData = '';
+      let mapImgData = (window as any).__cachedMapImage || '';
       
-      if (mapContainer) {
+      if (!mapImgData && mapContainer) {
         const mapCanvas = await html2canvas(mapContainer as HTMLElement, { useCORS: true, logging: false });
         mapImgData = mapCanvas.toDataURL('image/png');
       }
