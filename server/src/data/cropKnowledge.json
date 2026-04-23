@@ -1,0 +1,694 @@
+{
+  "rice": {
+    "nursery": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "transplanting": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.25,
+        "nutrient": 0.3
+      }
+    },
+    "tillering": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "panicle_init": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "grain_fill": {
+      "droughtSensitivity": "high",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.25,
+        "nutrient": 0.4
+      }
+    }
+  },
+  "wheat": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "germination": {
+      "droughtSensitivity": "critical",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.2,
+        "nutrient": 0.35
+      }
+    },
+    "tillering": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.3,
+        "nutrient": 0.3
+      }
+    },
+    "jointing": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "grain_fill": {
+      "droughtSensitivity": "high",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.2,
+        "nutrient": 0.45
+      }
+    }
+  },
+  "sugarcane": {
+    "planting": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "germination": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "tillering": {
+      "droughtSensitivity": "medium",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.4,
+        "nutrient": 0.25
+      }
+    },
+    "grand_growth": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "ripening": {
+      "droughtSensitivity": "medium",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.3,
+        "pest": 0.2,
+        "nutrient": 0.5
+      }
+    }
+  },
+  "cotton": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "emergence": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.4,
+        "nutrient": 0.25
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.4,
+        "nutrient": 0.2
+      }
+    },
+    "boll_formation": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.35,
+        "nutrient": 0.2
+      }
+    },
+    "boll_opening": {
+      "droughtSensitivity": "medium",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.3,
+        "pest": 0.25,
+        "nutrient": 0.45
+      }
+    }
+  },
+  "maize": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "emergence": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative_early": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative_late": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "tasseling": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "grain_fill": {
+      "droughtSensitivity": "high",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.2,
+        "nutrient": 0.45
+      }
+    }
+  },
+  "groundnut": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "emergence": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative": {
+      "droughtSensitivity": "medium",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.35,
+        "nutrient": 0.3
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "pod_dev": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "kernel_fill": {
+      "droughtSensitivity": "critical",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.2,
+        "nutrient": 0.35
+      }
+    }
+  },
+  "soybean": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "emergence": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "pod_dev": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "seed_fill": {
+      "droughtSensitivity": "high",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.2,
+        "nutrient": 0.4
+      }
+    }
+  },
+  "tomato": {
+    "nursery": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.35,
+        "nutrient": 0.2
+      }
+    },
+    "transplanting": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.4,
+        "nutrient": 0.25
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.35,
+        "nutrient": 0.2
+      }
+    },
+    "fruiting": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    }
+  },
+  "onion": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "vegetative": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.35,
+        "nutrient": 0.25
+      }
+    },
+    "bulb_init": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "bulb_dev": {
+      "droughtSensitivity": "high",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.4,
+        "pest": 0.3,
+        "nutrient": 0.3
+      }
+    },
+    "harvest_ready": {
+      "droughtSensitivity": "low",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.2,
+        "pest": 0.2,
+        "nutrient": 0.6
+      }
+    }
+  },
+  "jowar": {
+    "sowing": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.25,
+        "nutrient": 0.25
+      }
+    },
+    "emergence": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "low"
+      },
+      "weights": {
+        "drought": 0.45,
+        "pest": 0.3,
+        "nutrient": 0.25
+      }
+    },
+    "vegetative": {
+      "droughtSensitivity": "medium",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.35,
+        "nutrient": 0.3
+      }
+    },
+    "flowering": {
+      "droughtSensitivity": "critical",
+      "pestWindow": true,
+      "nutrientDemand": {
+        "N": "high"
+      },
+      "weights": {
+        "drought": 0.5,
+        "pest": 0.3,
+        "nutrient": 0.2
+      }
+    },
+    "grain_fill": {
+      "droughtSensitivity": "high",
+      "pestWindow": false,
+      "nutrientDemand": {
+        "N": "medium"
+      },
+      "weights": {
+        "drought": 0.35,
+        "pest": 0.2,
+        "nutrient": 0.45
+      }
+    }
+  }
+}
