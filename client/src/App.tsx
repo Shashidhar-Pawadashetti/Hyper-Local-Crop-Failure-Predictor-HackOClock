@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import HeroSection from './components/Hero/HeroSection';
 import InputWizard from './components/InputWizard/InputWizard';
 import RiskDashboard from './components/RiskDashboard/RiskDashboard';
 import RecommendationsPanel from './components/RecommendationsPanel/RecommendationsPanel';
-import LoadingScreen from './components/LoadingScreen';
 import RootErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import './index.css';
@@ -25,86 +25,101 @@ const pageTransition = {
   ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
 };
 
+function AnimatedRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={pageTransition}
+      style={{ width: '100%' }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 // ============================================================
-// Inner App (has access to context)
+// Guards
+// ============================================================
+
+/**
+ * Ensures analysis data exists before allowing access to result pages.
+ * On hard reload or direct deep-link, in-memory state is lost — send
+ * the user back to the wizard.
+ */
+function ResultsGuard({
+  children,
+  requireRecommendations = false,
+}: {
+  children: React.ReactNode;
+  requireRecommendations?: boolean;
+}) {
+  const { state } = useApp();
+  if (!state.analysisResult) return <Navigate to="/wizard" replace />;
+  if (requireRecommendations && state.recommendations.length === 0) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
+
+// ============================================================
+// Inner App (has access to router + context)
 // ============================================================
 
 function AppContent() {
-  const { state } = useApp();
-  const { currentView } = state;
+  const location = useLocation();
 
-  // Prevent body scroll on hero (Three.js handles scroll)
+  // Lock body overscroll on the 3D hero, relax it everywhere else
   useEffect(() => {
-    document.body.style.overscrollBehavior = 'none';
-    return () => { document.body.style.overscrollBehavior = 'auto'; };
-  }, []);
+    document.body.style.overscrollBehavior = location.pathname === '/' ? 'none' : 'auto';
+    return () => {
+      document.body.style.overscrollBehavior = 'auto';
+    };
+  }, [location.pathname]);
 
   return (
     <AnimatePresence mode="wait">
-      {currentView === 'hero' && (
-        <motion.div
-          key="hero"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <HeroSection />
-        </motion.div>
-      )}
-
-      {currentView === 'input' && (
-        <motion.div
-          key="input"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <InputWizard />
-        </motion.div>
-      )}
-
-      {currentView === 'loading' && (
-        <motion.div
-          key="loading"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <LoadingScreen />
-        </motion.div>
-      )}
-
-      {currentView === 'dashboard' && (
-        <motion.div
-          key="dashboard"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <RiskDashboard />
-        </motion.div>
-      )}
-
-      {currentView === 'recommendations' && (
-        <motion.div
-          key="recommendations"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <RecommendationsPanel />
-        </motion.div>
-      )}
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <AnimatedRoute>
+              <HeroSection />
+            </AnimatedRoute>
+          }
+        />
+        <Route
+          path="/wizard"
+          element={
+            <AnimatedRoute>
+              <InputWizard />
+            </AnimatedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <AnimatedRoute>
+              <ResultsGuard>
+                <RiskDashboard />
+              </ResultsGuard>
+            </AnimatedRoute>
+          }
+        />
+        <Route
+          path="/recommendations"
+          element={
+            <AnimatedRoute>
+              <ResultsGuard requireRecommendations>
+                <RecommendationsPanel />
+              </ResultsGuard>
+            </AnimatedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </AnimatePresence>
   );
 }

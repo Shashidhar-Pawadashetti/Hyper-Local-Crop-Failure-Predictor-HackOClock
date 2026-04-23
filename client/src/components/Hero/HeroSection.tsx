@@ -1,12 +1,13 @@
-import { useEffect, useRef, Suspense, lazy } from 'react';
+import { useEffect, useRef, Suspense, lazy, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useApp } from '../../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 // Lazy-load Three.js scene for performance
 const ThreeScene = lazy(() => import('./ThreeScene'));
 
 export default function HeroSection() {
-  const { goToInput } = useApp();
+  const navigate = useNavigate();
+  const goToInput = useCallback(() => navigate('/wizard'), [navigate]);
   const hasWebGL = useRef(true);
 
   useEffect(() => {

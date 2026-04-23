@@ -1,16 +1,19 @@
 import { useState, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { DISTRICTS, CROPS, GROWTH_STAGES, getMockAnalysis, getMockRecommendations } from '../../data/staticData';
 import { analysisApi, recommendationsApi } from '../../api/client';
 import { useToast } from '../Toast';
+import LoadingScreen from '../LoadingScreen';
 import type { District, Crop, GrowthStage } from '../../types';
 
 const TOTAL_STEPS = 3;
 
 export default function InputWizard() {
-  const { state, setDistrict, setCrop, setStage, setAnalysisResult, setRecommendations, setView } = useApp();
+  const { state, setDistrict, setCrop, setStage, setAnalysisResult, setRecommendations } = useApp();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export default function InputWizard() {
   };
 
   const handleBack = () => {
-    if (step === 1) setView('hero');
+    if (step === 1) navigate('/');
     else setStep(s => s - 1);
   };
 
@@ -42,7 +45,6 @@ export default function InputWizard() {
     if (!state.district || !state.crop || !state.stage) return;
     setLoading(true);
     setError(null);
-    setView('loading');
 
     let isOffline = false;
 
@@ -88,15 +90,18 @@ export default function InputWizard() {
         });
       }
 
-      setView('dashboard');
+      navigate('/dashboard');
     } catch {
       setError('Analysis failed. Please try again.');
       toast('Analysis failed — please retry', { variant: 'error' });
-      setView('input');
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div style={{
