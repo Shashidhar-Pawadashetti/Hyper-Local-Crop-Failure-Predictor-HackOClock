@@ -1,7 +1,9 @@
 import axios from 'axios';
 import type { AnalyzeResponse, RecommendResponse, Language } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
+// Use Vite's dev-server proxy for /api routes — avoids CORS entirely.
+// In production, set VITE_API_BASE_URL to the actual backend URL.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const client = axios.create({
   baseURL: BASE_URL,

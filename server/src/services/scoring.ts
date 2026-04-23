@@ -1,6 +1,6 @@
 // server/src/services/scoring.ts
 
-// @ts-ignore
+// @ts-ignore — JSON import (resolveJsonModule enabled)
 import cropKnowledgeRaw from "../data/cropKnowledge.json"
 
 export interface ChannelScore {
@@ -12,9 +12,11 @@ export interface ChannelScore {
 export interface WeatherInput {
   tempMax: number
   tempMin: number
-  humidity: number      // percentage
-  rainfall7d: number    // mm
-  forecastRain: number  // mm, next 7 days
+  humidity: number        // percentage
+  rainfall7d: number      // mm, past 7 days including today
+  forecastRain: number    // mm, next 6 days (excluding today)
+  precipToday: number     // mm, today's precipitation only
+  windSpeedMax: number    // km/h, today's max wind speed
 }
 
 export interface NDVIInput {
@@ -32,7 +34,10 @@ export interface ScoringInput {
 
 export interface ForecastDay {
   day: string           // ISO date string
-  score: number
+  score: number         // projected composite score
+  droughtScore: number  // projected drought channel score
+  pestScore: number     // stable pest channel score
+  nutrientScore: number // stable nutrient channel score
   rainfall: number
   tempMax: number
 }
@@ -46,6 +51,27 @@ export interface ScoringResult {
   }
   forecast: ForecastDay[]
 }
+
+// ---------------------------------------------------------------------------
+// Expected weekly rainfall per crop (mm/week)
+// Agronomic estimates for Indian growing conditions.
+// ---------------------------------------------------------------------------
+
+const EXPECTED_RAINFALL_BY_CROP: Record<string, number> = {
+  rice: 45,
+  wheat: 20,
+  sugarcane: 55,
+  cotton: 25,
+  maize: 30,
+  groundnut: 20,
+  soybean: 30,
+  tomato: 25,
+  onion: 20,
+  jowar: 22,
+};
+
+/** Fallback if the crop isn't in the lookup table. */
+const DEFAULT_EXPECTED_RAINFALL = 25;
 
 const cropKnowledge = cropKnowledgeRaw as Record<string, Record<string, any>>;
 
@@ -126,13 +152,17 @@ export function scoreNutrient(weather: WeatherInput, nutrientDemandN: string): C
 }
 
 export function calculateScore(input: ScoringInput): ScoringResult {
-  const cropData = cropKnowledge[input.crop];
-  if (!cropData) throw new Error(`Unknown crop: ${input.crop}`);
+  // Graceful fallback for missing crops (e.g. ragi, sunflower, tur)
+  const cropData = cropKnowledge[input.crop] || cropKnowledge['wheat'];
   
-  const stageData = cropData[input.growthStage];
-  if (!stageData) throw new Error(`Unknown growthStage: ${input.growthStage} for crop: ${input.crop}`);
+  // Graceful fallback for missing stages
+  let stageData = cropData[input.growthStage];
+  if (!stageData) {
+    stageData = cropData['vegetative'] || cropData['tillering'] || Object.values(cropData)[0];
+  }
   
-  const expectedRainfall = 25; // An assumed expected rainfall per week, as it's missing from the crop knowledge JSON schema in step 2.
+  // Use crop-specific expected rainfall instead of a hardcoded constant
+  const expectedRainfall = EXPECTED_RAINFALL_BY_CROP[input.crop] ?? DEFAULT_EXPECTED_RAINFALL;
   
   const drought = scoreDrought(input.weather, input.ndvi, stageData.droughtSensitivity, expectedRainfall);
   const pest = scorePest(input.weather, stageData.pestWindow);
@@ -145,6 +175,7 @@ export function calculateScore(input: ScoringInput): ScoringResult {
     nutrient.score * weights.nutrient
   );
   
+  // Build 7-day forecast projecting drought channel forward using incremental rainfall
   const forecast: ForecastDay[] = [];
   const today = new Date();
   
@@ -153,8 +184,8 @@ export function calculateScore(input: ScoringInput): ScoringResult {
     forecastDate.setDate(today.getDate() + n);
     const dayStr = forecastDate.toISOString().split("T")[0];
     
-    const incrementalRain = n === 0 ? 0 : input.weather.forecastRain / 7;
-    const simulatedRainfall7d = input.weather.rainfall7d + (input.weather.forecastRain / 7) * n;
+    const incrementalRain = n === 0 ? 0 : input.weather.forecastRain / 6;
+    const simulatedRainfall7d = input.weather.rainfall7d + (input.weather.forecastRain / 6) * n;
     
     const simWeather = { ...input.weather, rainfall7d: simulatedRainfall7d };
     const simDrought = scoreDrought(simWeather, input.ndvi, stageData.droughtSensitivity, expectedRainfall);
@@ -168,6 +199,9 @@ export function calculateScore(input: ScoringInput): ScoringResult {
     forecast.push({
       day: dayStr,
       score: simCompositeScore,
+      droughtScore: Math.round(simDrought.score),
+      pestScore: Math.round(pest.score),
+      nutrientScore: Math.round(nutrient.score),
       rainfall: incrementalRain,
       tempMax: input.weather.tempMax
     });

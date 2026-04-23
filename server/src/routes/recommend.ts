@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { getRecommendations, RiskPayload } from '../services/gemini';
+// @ts-ignore — JSON import
+import soilTypesRaw from '../data/soilTypes.json';
 import logger from '../utils/logger';
+
+const soilTypes = soilTypesRaw as Record<string, string>;
 
 // ---------------------------------------------------------------------------
 // Zod schema — matches the frontend RecommendRequest
@@ -54,9 +58,15 @@ type RecommendBody = z.infer<typeof recommendSchema>;
 
 function mapToRiskPayload(body: RecommendBody): RiskPayload {
   const rp = body.riskPayload;
-  
-  // Calculate forecast total rainfall
-  const forecastRain = rp.weather.forecast.reduce((sum, day) => sum + (day.precipitation || 0), 0);
+
+  // Sum forecast precipitation across the 7-day forecast
+  const forecastRain = rp.weather.forecast.reduce(
+    (sum: number, day: Record<string, unknown>) => sum + (Number(day.precipitation) || 0),
+    0,
+  );
+
+  // Look up soil type from soilTypes.json; fall back to 'medium black'
+  const soilType = soilTypes[body.district.name] ?? 'medium black';
 
   return {
     crop: body.crop.name,
@@ -76,11 +86,11 @@ function mapToRiskPayload(body: RecommendBody): RiskPayload {
     tempMin: rp.weather.current.temperature.min,
     humidity: rp.weather.current.humidity.value,
     rainfall7d: rp.weather.current.precipitation.value,
-    forecastRain: forecastRain,
+    forecastRain,
     ndviCurrent: rp.ndvi?.value ?? null,
     ndviBaseline: rp.ndvi ? rp.ndvi.value - rp.ndvi.anomaly : null,
     ndviDelta: rp.ndvi?.anomaly ?? null,
-    soilType: 'medium', // Default for now
+    soilType,
   };
 }
 

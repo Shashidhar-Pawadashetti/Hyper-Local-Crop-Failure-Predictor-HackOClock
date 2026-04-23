@@ -2,10 +2,10 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import logger from '../utils/logger';
 import AnalysisCache from '../models/AnalysisCache';
-import districtsData from '../data/districts.json';
 import { getWeather } from '../services/weather';
 import { getNDVI } from '../services/ndvi';
 import { calculateScore, toApiChannels } from '../services/scoring';
+import { sanitizeKeySegment } from '../services/cache';
 
 // ---------------------------------------------------------------------------
 // Zod schema — matches the frontend AnalyzeRequest
@@ -94,11 +94,16 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
     const { district, crop, stage } = parsed.data;
     const stageKey = STAGE_ID_MAP[stage.id] ?? stage.id;
 
-    // 1. Check cache using IDs
-    const cached = await AnalysisCache.findOne({ 
-      district: district.id, 
-      crop: crop.id, 
-      growthStage: stageKey 
+    // Sanitize inputs before using them as cache keys
+    const safeDistrictId = sanitizeKeySegment(district.id);
+    const safeCropId = sanitizeKeySegment(crop.id);
+    const safeStageKey = sanitizeKeySegment(stageKey);
+
+    // 1. Check cache using sanitized IDs
+    const cached = await AnalysisCache.findOne({
+      district: safeDistrictId,
+      crop: safeCropId,
+      growthStage: safeStageKey,
     });
 
     if (cached && cached.expiresAt > new Date()) {
@@ -109,7 +114,7 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
 
     logger.info(`Analyzing: ${district.name} / ${crop.name} / ${stage.name}`);
 
-    // 2. Fetch Weather & NDVI
+    // 2. Fetch Weather & NDVI (each has its own in-memory cache)
     const weather = await getWeather(district.lat, district.lon);
     const ndvi = await getNDVI(district.lat, district.lon, crop.id);
 
@@ -123,23 +128,33 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
         ndvi,
       });
     } catch (err) {
-      logger.warn(`Scoring error for ${crop.id}/${stageKey}, falling back to vegetative:`, err);
-      scoringResult = calculateScore({
-        crop: crop.id,
-        growthStage: 'vegetative',
-        weather,
-        ndvi,
-      });
+      logger.error(`Critical scoring error for ${crop.id}/${stageKey}:`, err);
+      // Absolute last resort fallback to prevent 500
+      scoringResult = {
+        compositeScore: 50,
+        channels: {
+          drought: { score: 50, level: 'medium' as const, driver: 'fallback data' },
+          pest: { score: 50, level: 'medium' as const, driver: 'fallback data' },
+          nutrient: { score: 50, level: 'medium' as const, driver: 'fallback data' }
+        },
+        forecast: Array.from({length: 7}).map((_, i) => ({
+          day: new Date(Date.now() + i*86400000).toISOString().split('T')[0],
+          score: 50, droughtScore: 50, pestScore: 50, nutrientScore: 50,
+          rainfall: 0, tempMax: weather.tempMax
+        }))
+      };
     }
 
     const channels = toApiChannels(scoringResult);
 
-    // 4. Build frontend-compatible forecast
+    // 4. Build forecast7Day from projected scoringResult.forecast
+    //    droughtRisk uses the projected per-day drought score, not random jitter.
+    //    pest and nutrient channels stay stable (no day-by-day projection yet).
     const forecast7Day = scoringResult.forecast.map(f => ({
       date: f.day,
-      droughtRisk: Math.round(scoringResult.channels.drought.score + (Math.random() - 0.5) * 10),
-      pestRisk: Math.round(scoringResult.channels.pest.score + (Math.random() - 0.5) * 8),
-      nutrientRisk: Math.round(scoringResult.channels.nutrient.score + (Math.random() - 0.5) * 8),
+      droughtRisk: f.droughtScore,
+      pestRisk: f.pestScore,
+      nutrientRisk: f.nutrientScore,
     }));
 
     // 5. Determine NDVI status
@@ -156,18 +171,15 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
         weather: {
           current: {
             temperature: { max: weather.tempMax, min: weather.tempMin, unit: '°C' },
-            precipitation: { value: weather.rainfall7d, unit: 'mm' },
+            precipitation: { value: weather.precipToday, unit: 'mm' },
             humidity: { value: weather.humidity, unit: '%' },
-            windSpeed: { value: Math.round(8 + Math.random() * 12), unit: 'km/h' },
+            windSpeed: { value: weather.windSpeedMax, unit: 'km/h' },
           },
           forecast: scoringResult.forecast.map(f => ({
             date: f.day,
-            temperature: { 
-              max: f.tempMax + Math.round((Math.random() - 0.5) * 4), 
-              min: f.tempMax - 8 + Math.round((Math.random() - 0.5) * 3) 
-            },
+            temperature: { max: f.tempMax, min: weather.tempMin },
             precipitation: f.rainfall,
-            humidity: weather.humidity + Math.round((Math.random() - 0.5) * 10),
+            humidity: weather.humidity,
           })),
           fetchedAt: new Date().toISOString(),
           isFresh: true,
@@ -202,13 +214,13 @@ analyzeRouter.post('/', async (req: Request, res: Response): Promise<void> => {
           },
         },
         forecast7Day,
-      }
+      },
     };
 
-    // 7. Cache the Result (TTL 6 hours)
+    // 7. Cache the Result (TTL 6 hours) using sanitized keys
     const expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000);
     await AnalysisCache.findOneAndUpdate(
-      { district: district.id, crop: crop.id, growthStage: stageKey },
+      { district: safeDistrictId, crop: safeCropId, growthStage: safeStageKey },
       { result: resultPayload, cachedAt: new Date(), expiresAt },
       { upsert: true, new: true }
     );

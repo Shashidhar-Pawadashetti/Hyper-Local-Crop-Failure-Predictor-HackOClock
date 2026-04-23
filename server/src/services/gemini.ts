@@ -1,8 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-// @ts-ignore
+// @ts-ignore — JSON import
 import fallbackDataRaw from '../data/fallbackRecommendations.json';
+import logger from '../utils/logger';
 
-export const GEMINI_MODEL_NAME = 'gemini-1.5-flash';
+// ---------------------------------------------------------------------------
+// Model configuration — prefers Groq if GROQ_API_KEY is set, else Gemini
+// ---------------------------------------------------------------------------
+
+const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';  // Groq's best model
+const GEMINI_MODEL = 'gemini-1.5-pro';           // Upgraded from flash to pro
 
 const SYSTEM_PROMPT = `You are a senior agronomist advising small-scale Indian farmers.
 You will receive a JSON object describing a farmer's crop, growth stage,
@@ -105,7 +112,7 @@ export function buildUserMessage(payload: RiskPayload): string {
   return `Here is the crop situation for this farmer:
 
 Crop: ${payload.crop}
-District: ${payload.district}, Karnataka, India
+District: ${payload.district}, India
 Growth Stage: ${payload.growthStage}
 
 Risk Scores (0 = no risk, 100 = critical):
@@ -133,51 +140,111 @@ Generate recommendations now.`;
 
 function getFallbackRecommendations(_payload: RiskPayload): GeminiResult {
   const fallback = fallbackDataRaw as { recommendations: RecommendationItem[]; summary: RecommendationSummary };
-  return { 
-    success: true, 
+  return {
+    success: true,
     data: {
       recommendations: fallback.recommendations,
       summary: fallback.summary,
-      aiGenerated: false
-    }
+      aiGenerated: false,
+    },
   };
 }
 
+// ---------------------------------------------------------------------------
+// Groq provider — OpenAI-compatible chat completions API
+// ---------------------------------------------------------------------------
+
+async function callGroq(userMessage: string): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY is not set');
+
+  const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.2,
+      max_tokens: 1500,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Groq API ${response.status}: ${errorBody}`);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment — Groq returns dynamic JSON
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content ?? '';
+}
+
+// ---------------------------------------------------------------------------
+// Gemini provider — Google Generative AI SDK
+// ---------------------------------------------------------------------------
+
+async function callGemini(userMessage: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: GEMINI_MODEL,
+    systemInstruction: SYSTEM_PROMPT,
+    generationConfig: { temperature: 0.2, maxOutputTokens: 1500 },
+  });
+
+  const result = await model.generateContent(userMessage);
+  return result.response.text();
+}
+
+// ---------------------------------------------------------------------------
+// Main entry point — auto-selects Groq or Gemini based on available API key
+// ---------------------------------------------------------------------------
+
 export async function getRecommendations(payload: RiskPayload): Promise<GeminiResult> {
+  const userMessage = buildUserMessage(payload);
+  const useGroq = !!process.env.GROQ_API_KEY;
+  const provider = useGroq ? 'Groq' : 'Gemini';
+  const modelName = useGroq ? GROQ_MODEL : GEMINI_MODEL;
+
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error('GEMINI_API_KEY is not set in environment');
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: GEMINI_MODEL_NAME,
-      systemInstruction: SYSTEM_PROMPT,
-      generationConfig: { temperature: 0.2, maxOutputTokens: 1500 },
-    });
-
-    const result = await model.generateContent(buildUserMessage(payload));
-    let text = result.response.text();
-
-    // Strip markdown code fences if Gemini wraps the output
-    text = text.replace(/^\s*```(?:json)?\s*\n?/i, '').replace(/\n?\s*```\s*$/i, '');
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Gemini returns dynamic JSON
-    const parsed = JSON.parse(text);
-    if (!parsed.recommendations || !parsed.summary) {
-      throw new Error('Gemini response missing required keys');
+    if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+      throw new Error('No AI API key configured (set GROQ_API_KEY or GEMINI_API_KEY)');
     }
 
-    return { 
-      success: true, 
+    logger.info(`Calling ${provider} (${modelName}) for recommendations…`);
+    let text = useGroq ? await callGroq(userMessage) : await callGemini(userMessage);
+
+    // Strip markdown code fences if the model wraps the output
+    text = text.replace(/^\s*```(?:json)?\s*\n?/i, '').replace(/\n?\s*```\s*$/i, '');
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment — AI returns dynamic JSON
+    const parsed = JSON.parse(text);
+    if (!parsed.recommendations || !parsed.summary) {
+      throw new Error(`${provider} response missing required keys`);
+    }
+
+    logger.info(`${provider} returned ${parsed.recommendations.length} recommendations`);
+
+    return {
+      success: true,
       data: {
         recommendations: parsed.recommendations,
         summary: parsed.summary,
-        generatedBy: GEMINI_MODEL_NAME,
-        aiGenerated: true
-      }
+        generatedBy: `${provider}/${modelName}`,
+        aiGenerated: true,
+      },
     };
   } catch (err) {
-    console.error(`[gemini] Error generating recommendations: ${String(err)}`);
+    logger.error(`[${provider}] Error generating recommendations:`, err);
     return getFallbackRecommendations(payload);
   }
 }
