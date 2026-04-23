@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 
+import analyzeRouter from './routes/analyze';
 import recommendRouter from './routes/recommend';
 import logger from './utils/logger';
 
@@ -11,6 +12,7 @@ const app = express();
 app.use(express.json());
 
 // Routes
+app.use('/api/analyze', analyzeRouter);
 app.use('/api/recommend', recommendRouter);
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/fasalrakshak';
