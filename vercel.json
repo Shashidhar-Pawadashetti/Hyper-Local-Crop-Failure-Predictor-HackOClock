@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd client && npm install --legacy-peer-deps && npm run build",
+  "outputDirectory": "client/dist",
+  "installCommand": "echo 'skipping root install'",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
