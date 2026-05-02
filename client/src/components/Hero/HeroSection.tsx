@@ -1,12 +1,12 @@
 import { useEffect, useRef, Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
-import { useApp } from '../../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 // Lazy-load Three.js scene for performance
 const ThreeScene = lazy(() => import('./ThreeScene'));
 
 export default function HeroSection() {
-  const { goToInput } = useApp();
+  const navigate = useNavigate();
   const hasWebGL = useRef(true);
 
   useEffect(() => {
@@ -154,7 +154,7 @@ export default function HeroSection() {
           <button
             id="hero-cta-btn"
             className="btn-primary animate-pulse-glow"
-            onClick={goToInput}
+            onClick={() => navigate('/analyze')}
             style={{ fontSize: '1.1rem', padding: '1rem 2.5rem', minWidth: '200px' }}
           >
             🌾 Start Analysis
@@ -187,7 +187,7 @@ export default function HeroSection() {
       </motion.div>
 
       {/* How it works section */}
-      <HowItWorks goToInput={goToInput} />
+      <HowItWorks onStart={() => navigate('/analyze')} />
     </section>
   );
 }
@@ -255,7 +255,7 @@ function HeroParticles() {
 // How It Works section below hero fold
 // ============================================================
 
-function HowItWorks({ goToInput }: { goToInput: () => void }) {
+function HowItWorks({ onStart }: { onStart: () => void }) {
   const steps = [
     { icon: '📍', title: 'Select Location', desc: 'Choose your district from 30+ Indian locations', color: '#38bdf8' },
     { icon: '🌾', title: 'Pick Your Crop', desc: 'Select crop type and current growth stage', color: '#22c55e' },
@@ -342,7 +342,7 @@ function HowItWorks({ goToInput }: { goToInput: () => void }) {
           <button
             id="how-it-works-cta"
             className="btn-primary"
-            onClick={goToInput}
+            onClick={onStart}
             style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
           >
             🚀 Start Free Analysis

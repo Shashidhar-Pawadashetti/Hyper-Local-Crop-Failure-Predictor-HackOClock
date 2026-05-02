@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import type { Language, RecommendationItem } from '../../types';
 import { speakRecommendations, stopSpeaking } from '../../utils/speech';
@@ -9,7 +10,8 @@ import PDFExport from './PDFExport';
 import CostSummary from './CostSummary';
 
 export default function RecommendationsPanel() {
-  const { state, setLanguage, setView } = useApp();
+  const { state, setLanguage } = useApp();
+  const navigate = useNavigate();
   const { recommendations, recommendationSummary, district, crop, stage, language } = state;
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -54,7 +56,7 @@ export default function RecommendationsPanel() {
         gap: '0.75rem',
       }}>
         <button
-          onClick={() => setView('dashboard')}
+          onClick={() => navigate('/results')}
           style={{
             background: 'transparent',
             border: 'none',
@@ -182,7 +184,7 @@ export default function RecommendationsPanel() {
 
         {/* Start Over */}
         <button
-          onClick={() => { setView('input'); }}
+          onClick={() => { navigate('/analyze'); }}
           className="btn-secondary"
           style={{ width: '100%', marginTop: '1rem', fontSize: '0.9rem' }}
         >
