@@ -99,12 +99,12 @@ export default function InputWizard() {
     }
   };
 
+  if (loading) return <LoadingScreen />;
+
   return (
-    <>
-      {loading && <LoadingScreen />}
-      <div style={{
-        minHeight: '100svh',
-        display: loading ? 'none' : 'flex',
+    <div style={{
+      minHeight: '100svh',
+      display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
@@ -242,7 +242,6 @@ export default function InputWizard() {
         </p>
       </div>
     </div>
-    </>
   );
 }
 
