@@ -10,7 +10,6 @@ type AppAction =
   | { type: 'SET_CROP'; payload: Crop }
   | { type: 'SET_STAGE'; payload: GrowthStage }
   | { type: 'SET_LANGUAGE'; payload: Language }
-  | { type: 'SET_VIEW'; payload: AppState['currentView'] }
   | { type: 'SET_ANALYSIS_RESULT'; payload: AnalyzeResponse['data'] }
   | { type: 'SET_RECOMMENDATIONS'; payload: { items: RecommendationItem[]; summary: RecommendationSummary } }
   | { type: 'SET_MAP_THEME'; payload: MapTheme }
@@ -25,7 +24,6 @@ const initialState: AppState = {
   crop: null,
   stage: null,
   language: 'en',
-  currentView: 'hero',
   analysisResult: null,
   recommendations: [],
   recommendationSummary: null,
@@ -46,8 +44,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, stage: action.payload };
     case 'SET_LANGUAGE':
       return { ...state, language: action.payload };
-    case 'SET_VIEW':
-      return { ...state, currentView: action.payload };
     case 'SET_ANALYSIS_RESULT':
       return { ...state, analysisResult: action.payload };
     case 'SET_RECOMMENDATIONS':
@@ -71,14 +67,9 @@ interface AppContextValue {
   setCrop: (c: Crop) => void;
   setStage: (s: GrowthStage) => void;
   setLanguage: (l: Language) => void;
-  setView: (v: AppState['currentView']) => void;
   setAnalysisResult: (r: AnalyzeResponse['data']) => void;
   setRecommendations: (items: RecommendationItem[], summary: RecommendationSummary) => void;
   setMapTheme: (t: MapTheme) => void;
-  goToInput: () => void;
-  goToDashboard: () => void;
-  goToRecommendations: () => void;
-  goToHero: () => void;
   resetForm: () => void;
 }
 
@@ -95,22 +86,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setCrop = (c: Crop) => dispatch({ type: 'SET_CROP', payload: c });
   const setStage = (s: GrowthStage) => dispatch({ type: 'SET_STAGE', payload: s });
   const setLanguage = (l: Language) => dispatch({ type: 'SET_LANGUAGE', payload: l });
-  const setView = (v: AppState['currentView']) => dispatch({ type: 'SET_VIEW', payload: v });
   const setAnalysisResult = (r: AnalyzeResponse['data']) => dispatch({ type: 'SET_ANALYSIS_RESULT', payload: r });
   const setRecommendations = (items: RecommendationItem[], summary: RecommendationSummary) =>
     dispatch({ type: 'SET_RECOMMENDATIONS', payload: { items, summary } });
   const setMapTheme = (t: MapTheme) => dispatch({ type: 'SET_MAP_THEME', payload: t });
-  const goToInput = () => dispatch({ type: 'SET_VIEW', payload: 'input' });
-  const goToDashboard = () => dispatch({ type: 'SET_VIEW', payload: 'dashboard' });
-  const goToRecommendations = () => dispatch({ type: 'SET_VIEW', payload: 'recommendations' });
-  const goToHero = () => dispatch({ type: 'SET_VIEW', payload: 'hero' });
   const resetForm = () => dispatch({ type: 'RESET_FORM' });
 
   return (
     <AppContext.Provider value={{
-      state, setDistrict, setCrop, setStage, setLanguage, setView,
-      setAnalysisResult, setRecommendations, setMapTheme,
-      goToInput, goToDashboard, goToRecommendations, goToHero, resetForm,
+      state, setDistrict, setCrop, setStage, setLanguage,
+      setAnalysisResult, setRecommendations, setMapTheme, resetForm,
     }}>
       {children}
     </AppContext.Provider>

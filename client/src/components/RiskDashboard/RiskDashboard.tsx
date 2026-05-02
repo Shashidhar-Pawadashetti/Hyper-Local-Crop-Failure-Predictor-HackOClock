@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { useApp } from '../../context/AppContext';
 import ScoreGauge from './ScoreGauge';
@@ -9,7 +10,8 @@ import WeatherForecast from './WeatherForecast';
 import DistrictMap from '../Map/DistrictMap';
 
 export default function RiskDashboard() {
-  const { state, goToRecommendations, goToInput, resetForm } = useApp();
+  const { state, resetForm } = useApp();
+  const navigate = useNavigate();
   const { analysisResult, district, crop, stage } = state;
 
   if (!analysisResult) return null;
@@ -69,7 +71,7 @@ export default function RiskDashboard() {
         justifyContent: 'space-between',
       }}>
         <button
-          onClick={() => { resetForm(); goToInput(); }}
+          onClick={() => { resetForm(); navigate('/analyze'); }}
           style={{
             background: 'transparent',
             border: 'none',
@@ -89,7 +91,7 @@ export default function RiskDashboard() {
         </div>
         <button
           id="go-to-recommendations-btn"
-          onClick={goToRecommendations}
+          onClick={() => navigate('/results/recommendations')}
           style={{
             background: 'rgba(34,197,94,0.12)',
             border: '1px solid rgba(34,197,94,0.25)',
@@ -402,7 +404,7 @@ export default function RiskDashboard() {
           <button
             id="view-recommendations-btn"
             className="btn-primary animate-pulse-glow"
-            onClick={goToRecommendations}
+            onClick={() => navigate('/results/recommendations')}
             style={{ width: '100%', fontSize: '1.05rem', padding: '1rem' }}
           >
             💡 View Smart Recommendations →

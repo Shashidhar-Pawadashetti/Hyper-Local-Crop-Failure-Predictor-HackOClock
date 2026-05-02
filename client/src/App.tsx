@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AppProvider, useApp } from './context/AppContext';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
 import HeroSection from './components/Hero/HeroSection';
 import InputWizard from './components/InputWizard/InputWizard';
 import RiskDashboard from './components/RiskDashboard/RiskDashboard';
 import RecommendationsPanel from './components/RecommendationsPanel/RecommendationsPanel';
-import LoadingScreen from './components/LoadingScreen';
+import ProtectedRoute from './components/ProtectedRoute';
 import RootErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import './index.css';
@@ -26,12 +27,11 @@ const pageTransition = {
 };
 
 // ============================================================
-// Inner App (has access to context)
+// Inner App (has access to context + router)
 // ============================================================
 
 function AppContent() {
-  const { state } = useApp();
-  const { currentView } = state;
+  const location = useLocation();
 
   // Prevent body scroll on hero (Three.js handles scroll)
   useEffect(() => {
@@ -41,70 +41,36 @@ function AppContent() {
 
   return (
     <AnimatePresence mode="wait">
-      {currentView === 'hero' && (
-        <motion.div
-          key="hero"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <HeroSection />
-        </motion.div>
-      )}
-
-      {currentView === 'input' && (
-        <motion.div
-          key="input"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <InputWizard />
-        </motion.div>
-      )}
-
-      {currentView === 'loading' && (
-        <motion.div
-          key="loading"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <LoadingScreen />
-        </motion.div>
-      )}
-
-      {currentView === 'dashboard' && (
-        <motion.div
-          key="dashboard"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <RiskDashboard />
-        </motion.div>
-      )}
-
-      {currentView === 'recommendations' && (
-        <motion.div
-          key="recommendations"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <RecommendationsPanel />
-        </motion.div>
-      )}
+      <motion.div
+        key={location.pathname}
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={pageTransition}
+      >
+        <Routes location={location}>
+          <Route path="/" element={<HeroSection />} />
+          <Route path="/analyze" element={<InputWizard />} />
+          <Route
+            path="/results"
+            element={
+              <ProtectedRoute>
+                <RiskDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/results/recommendations"
+            element={
+              <ProtectedRoute>
+                <RecommendationsPanel />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </motion.div>
     </AnimatePresence>
   );
 }

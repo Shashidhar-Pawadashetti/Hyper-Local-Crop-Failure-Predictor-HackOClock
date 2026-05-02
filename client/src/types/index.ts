@@ -144,7 +144,6 @@ export interface AppState {
   crop: Crop | null;
   stage: GrowthStage | null;
   language: Language;
-  currentView: 'hero' | 'input' | 'loading' | 'dashboard' | 'recommendations';
   analysisResult: AnalyzeResponse['data'] | null;
   recommendations: RecommendationItem[];
   recommendationSummary: RecommendationSummary | null;
