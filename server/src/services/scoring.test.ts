@@ -12,7 +12,7 @@ describe('Scoring Engine', () => {
   it('1. High drought, no NDVI', () => {
     // wheat at flowering, 0mm rainfall last 7 days, humidity 48%, tempMax 35°C, ndvi null.
     // Drought score must be > 70. Pest score must be < 40. Composite must be > 50.
-    const weather: WeatherInput = { tempMax: 35, tempMin: 20, humidity: 48, rainfall7d: 0, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 35, tempMin: 20, humidity: 48, rainfall7d: 0, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     const ndvi: NDVIInput = { current: null, baseline: null, delta: null };
     
     const result = calculateScore({
@@ -30,7 +30,7 @@ describe('Scoring Engine', () => {
   it('2. High pest pressure', () => {
     // rice at tillering, 45mm rainfall, humidity 88%, tempMax 31°C, pestWindow true.
     // Pest score must be > 60. Drought score must be < 30.
-    const weather: WeatherInput = { tempMax: 31, tempMin: 20, humidity: 88, rainfall7d: 45, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 31, tempMin: 20, humidity: 88, rainfall7d: 45, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     const ndvi: NDVIInput = { current: null, baseline: null, delta: null };
     
     const result = calculateScore({
@@ -47,7 +47,7 @@ describe('Scoring Engine', () => {
   it('3. NDVI penalty applied', () => {
     // any crop, baseline NDVI 0.61, current 0.38 (delta -0.23). 
     // The returned drought score must be higher than the same call with ndvi null.
-    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     
     const ndviNull: NDVIInput = { current: null, baseline: null, delta: null };
     const ndviPenalty: NDVIInput = { current: 0.38, baseline: 0.61, delta: -0.23 };
@@ -61,7 +61,7 @@ describe('Scoring Engine', () => {
   it('4. Stage multiplier for critical vs low', () => {
     // same weather, wheat at sowing (droughtSensitivity: critical) vs grain_fill (droughtSensitivity: high). 
     // The critical stage score must be higher.
-    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     const ndvi: NDVIInput = { current: null, baseline: null, delta: null };
     
     const sowingScore = scoreDrought(weather, ndvi, 'critical', 25).score; // wheat sowing is critical
@@ -72,7 +72,7 @@ describe('Scoring Engine', () => {
 
   it('5. Clamp boundary', () => {
     // extreme inputs (humidity 100%, tempMax 45°C) must never return a score above 100.
-    const weather: WeatherInput = { tempMax: 45, tempMin: 20, humidity: 100, rainfall7d: 0, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 45, tempMin: 20, humidity: 100, rainfall7d: 0, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     
     const pest = scorePest(weather, true);
     expect(pest.score).toBeLessThanOrEqual(100);
@@ -84,7 +84,7 @@ describe('Scoring Engine', () => {
   it('6. Weights sum to composite', () => {
     // manually multiply the three channel scores by their weights from cropKnowledge.json for a known crop+stage
     // and verify the returned compositeScore matches (within ±1 for rounding).
-    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     const ndvi: NDVIInput = { current: null, baseline: null, delta: null };
     
     const result = calculateScore({
@@ -106,7 +106,7 @@ describe('Scoring Engine', () => {
 
   it('7. Unknown crop throws', () => {
     // passing crop: "banana" must throw with a message containing "crop" or "stage".
-    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     const ndvi: NDVIInput = { current: null, baseline: null, delta: null };
     
     expect(() => {
@@ -121,7 +121,7 @@ describe('Scoring Engine', () => {
 
   it('8. Forecast has 7 entries', () => {
     // the returned forecast array must have length 7, each with a unique day string.
-    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0 };
+    const weather: WeatherInput = { tempMax: 30, tempMin: 20, humidity: 60, rainfall7d: 10, forecastRain: 0, precipToday: 0, windSpeedMax: 10 };
     const ndvi: NDVIInput = { current: null, baseline: null, delta: null };
     
     const result = calculateScore({
